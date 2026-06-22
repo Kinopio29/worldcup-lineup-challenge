@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
+  <meta name="referrer" content="no-referrer" />
 <script>
 // ======== ????????????APP? ========
 window.__colorbox_runtime__ = true;
@@ -2183,7 +2184,7 @@ function renderReview() {
   }
   document.getElementById("squadList").innerHTML = t.items.map(i => `
     <div class="squad-item">
-      <div class="mini"><img src="${i.player.avatar}" onerror="this.style.display='none'"></div>
+      <div class="mini"><img src="${i.player.avatar}" crossorigin="anonymous" onerror="this.style.display='none'"></div>
       <div style="min-width:0;">
         <strong>${i.slot.pos} · ${i.player.name}</strong>
         <span>${i.player.country}${state.blindMode ? "" : " · 战力" + i.player.rating}</span>
