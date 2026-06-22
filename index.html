@@ -3276,12 +3276,13 @@ function _showCanvasOnPage(canvas) {
   try {
     var w = window.open("about:blank", "_blank", "width=500,height=860");
     if (!w) return;
-    w.document.write("<html><body style="margin:0;padding:0;background:#fff">");
-    w.document.write("<img src=\"" + canvas.toDataURL("image/png", 0.95) + "\" style=\"width:100%;max-width:500px\">");
+    w.document.write("<html><body style=\"margin:0;padding:0;background:#fff\">");
+    var dataUrl = canvas.toDataURL("image/png", 0.95);
+    w.document.write("<img src=\"" + dataUrl + "\" style=\"width:100%;max-width:500px\">");
     w.document.write("<p style=\"text-align:center;font-size:14px;color:#666;margin:10px\">????????</p>");
     w.document.write("</body></html>");
   } catch(e) {
-    alert("?????????????????????????");
+    alert("\u6d77\u62a5\u5df2\u751f\u6210\uff0c\u4f46\u65e0\u6cd5\u5bfc\u51fa\u3002\u8bf7\u4f7f\u7528\u622a\u56fe\u5de5\u5177\u624b\u52a8\u4fdd\u5b58\u3002");
   }
 }
 </script>
