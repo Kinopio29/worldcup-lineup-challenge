@@ -2525,17 +2525,17 @@ function closeShareMenu() {
 
 async function openShareMenu(btn) {
   if (!state.final) renderFinal();
-  const oldText = btn && btn.textContent ? btn.textContent : "去分享";
   if (btn) {
     btn.disabled = true;
-    btn.textContent = "去分享...";
+    btn.textContent = "正在生成海报...";
   }
-  try { await submitResultScoreSilently(); } catch (e) { debugLog("result_score_silent_error", { error: (e && e.message) || String(e) }); }
+  try { await submitResultScoreSilently(); } catch (e) {}
+  // 直接生成海报并下载
+  await sharePoster(btn);
   if (btn) {
     btn.disabled = false;
-    btn.textContent = oldText;
+    btn.textContent = "去分享";
   }
-  openShareMenuModal();
 }
 
 function shareFromMenu(btn) {
@@ -3228,71 +3228,60 @@ async function sharePoster(btn) {
   if (!state.final) {
     renderFinal();
   }
-  const oldText = btn && btn.textContent ? btn.textContent : "一键发帖";
-  if (btn) {
-    btn.disabled = true;
-    btn.textContent = "正在生成图片...";
-  }
   debugLog("share_start");
-  let imageUrl = "";
-  let uploadError = "";
   try {
     const canvas = await createPosterCanvas();
     window.__posterCanvas = canvas;
     debugLog("canvas_created", { width: canvas.width, height: canvas.height });
     const blob = await canvasToBlob(canvas, "image/png", 0.95);
     debugLog("blob_created", { size: blob.size, type: blob.type });
-    if (btn) btn.textContent = "正在上传图片...";
-    debugLog("upload_start");
-    imageUrl = await uploadToOSS(blob, "worldcup_draft_" + Date.now() + ".png");
-    if (!isValidImageUrl(imageUrl)) throw new Error("OSS 返回值不是可访问图片 URL");
-    debugLog("upload_success", { imageUrl: imageUrl });
+    // 直接触发浏览器下载
+    _downloadBlob(blob, "worldcup_poster_" + Date.now() + ".png");
   } catch (e) {
-    uploadError = (e && e.message) || String(e);
-    debugLog("upload_failed", { error: uploadError });
-    try { await copyDebugLogs(); } catch (copyError) {}
-    imageUrl = "";
+    debugLog("share_failed", { error: (e && e.message) || String(e) });
+    // 降级处理
+    try {
+      var c = window.__posterCanvas;
+      if (c) {
+        _showCanvasOnPage(c);
+      } else {
+        alert("海报生成失败，请尝试截图保存。");
+      }
+    } catch(e2) {
+      alert("海报生成失败，请尝试截图保存。");
+    }
   }
-  const hasImage = isValidImageUrl(imageUrl);
-  if (!hasImage) {
-    debugLog("fallback_text_post", { reason: uploadError || "NO_VALID_IMAGE_URL" });
-    // ====== ???????????? ======
-    _downloadFallbackPoster();
-  } else {
-    // ====== ???????????? ======
-    _downloadFallbackPoster();
-  }
-  const initialValue = buildInitialValue(imageUrl);
-  const url = buildPostUrl(initialValue);
-  if (btn) {
-    btn.disabled = false;
-    btn.textContent = oldText;
-  }
-  setTimeout(function() { safeNavigate(url); }, 260);
 }
 
 renderFormationGrid();
 
-function _downloadFallbackPoster() {
+function _downloadBlob(blob, filename) {
   try {
-    var c = window.__posterCanvas;
-    if (!c) { c = document.getElementById("posterCanvas"); }
-    if (!c) return;
-    c.toBlob(function(blob) {
-      var url = URL.createObjectURL(blob);
-      var a = document.createElement("a");
-      a.href = url;
-      a.download = "worldcup_poster_" + Date.now() + ".png";
-      a.style.display = "none";
-      document.body.appendChild(a);
-      a.click();
-      setTimeout(function() {
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-      }, 1000);
-    }, "image/png", 0.95);
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    a.style.display = "none";
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(function() {
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }, 1000);
   } catch(e) {
     debugLog("download_fallback_failed", { error: (e && e.message) || String(e) });
+  }
+}
+function _showCanvasOnPage(canvas) {
+  try {
+    var w = window.open("about:blank", "_blank", "width=500,height=860");
+    if (!w) return;
+    w.document.write("<html><body style="margin:0;padding:0;background:#fff">");
+    w.document.write("<img src=\"" + canvas.toDataURL("image/png", 0.95) + "\" style=\"width:100%;max-width:500px\">");
+    w.document.write("<p style=\"text-align:center;font-size:14px;color:#666;margin:10px\">????????</p>");
+    w.document.write("</body></html>");
+  } catch(e) {
+    alert("?????????????????????????");
   }
 }
 </script>
