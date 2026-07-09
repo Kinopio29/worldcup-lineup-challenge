@@ -1,6 +1,8 @@
 # 世界杯完美阵容挑战 🏆
 
 原为虎扑APP内的互动活动，这是修改后的网页版，**无需虎扑APP**，在浏览器中直接打开即可游玩。
+https://kinopio29.github.io/worldcup-lineup-challenge/
+
 
 ## 修改内容
 
